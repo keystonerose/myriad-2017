@@ -1,0 +1,44 @@
+[Buildset]
+BuildItems=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x01\x00\x00\x00\x16\x00M\x00y\x00r\x00i\x00a\x00d\x00 \x002\x000\x001\x007)
+
+[CMake]
+Build Directory Count=1
+Current Build Directory Index=0
+
+[CMake][CMake Build Directory 0]
+Build Directory Path=/home/james/development/projects/myriad-2017/build
+Build Type=Debug
+CMake Binary=/usr/bin/cmake
+Environment Profile=
+Extra Arguments=
+Install Directory=
+
+[CustomDefinesAndIncludes][ProjectPath0]
+Path=.
+parseAmbiguousAsCPP=true
+parserArguments=-ferror-limit=100 -fspell-checking -Wdocumentation -Wunused-parameter -Wunreachable-code -Wall -std=c++14
+parserArgumentsC=-ferror-limit=100 -fspell-checking -Wdocumentation -Wunused-parameter -Wunreachable-code -Wall -std=c99
+
+[CustomDefinesAndIncludes][ProjectPath0][Compiler]
+Name=Clang
+
+[Launch]
+Launch Configurations=Launch Configuration 0
+
+[Launch][Launch Configuration 0]
+Configured Launch Modes=execute
+Configured Launchers=nativeAppLauncher
+Name=Default
+Type=Native Application
+
+[Launch][Launch Configuration 0][Data]
+Arguments=
+Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x02\x00\x00\x00\x16\x00M\x00y\x00r\x00i\x00a\x00d\x00 \x002\x000\x001\x007\x00\x00\x00\x0c\x00m\x00y\x00r\x00i\x00a\x00d)
+Dependency Action=Build
+EnvironmentGroup=
+Executable=file:///home/james/development/projects/myriad-2017
+External Terminal=konsole --noclose --workdir %workdir -e %exe
+Project Target=Myriad 2017,myriad
+Use External Terminal=false
+Working Directory=
+isExecutable=false
