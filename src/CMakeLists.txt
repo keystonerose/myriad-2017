@@ -1,5 +1,6 @@
 set(MYRIAD_SRCS
    ${MYRIAD_SRCS}
+   ${CMAKE_CURRENT_SOURCE_DIR}/engine.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/exception.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/image_info.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
