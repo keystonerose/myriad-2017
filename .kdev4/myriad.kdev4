@@ -42,3 +42,6 @@ Project Target=Myriad 2017,myriad
 Use External Terminal=false
 Working Directory=
 isExecutable=false
+
+[Project]
+VersionControlSupport=kdevgit
