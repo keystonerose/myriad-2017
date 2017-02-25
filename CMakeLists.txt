@@ -11,6 +11,7 @@ set(3RDPARTY_DIR "3rdparty")
 set(INSTALL_DIR "install")
 set(PHASH_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${3RDPARTY_DIR}/libphash")
 set(PHASH_SRC_DIR "${PHASH_DIR}/src/libphash")
+set(PHASH_LIBRARY "${PHASH_DIR}/lib/libpHash.a")
 
 include(ExternalProject)
 
@@ -27,7 +28,12 @@ ExternalProject_Add(libphash
     INSTALL_COMMAND make install
 )
 
+# libjpeg and libpng are not used directly, but required by libphash.
+
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
+find_package(JPEG REQUIRED)
+find_package(PNG REQUIRED)
+
 include_directories(${3RDPARTY_DIR}/GSL/include)
 include_directories(${PHASH_DIR}/include)
 
@@ -35,5 +41,5 @@ add_subdirectory(src)
 add_executable(myriad ${MYRIAD_SRCS})
 add_dependencies(myriad libphash)
 
-target_link_libraries(myriad Qt5::Widgets)
+target_link_libraries(myriad Qt5::Widgets ${PHASH_LIBRARY} ${PNG_LIBRARY} ${JPEG_LIBRARIES})
 install(TARGETS myriad RUNTIME DESTINATION bin)
