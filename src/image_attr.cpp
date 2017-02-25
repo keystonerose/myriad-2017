@@ -1,10 +1,7 @@
 #include "image_attr.hpp"
 #include "exception.hpp"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-function"
 #include "pHash.h"
-#pragma GCC diagnostic pop
 
 #include <QDir>
 #include <QFile>
@@ -67,7 +64,7 @@ namespace myriad {
 
     image_attr read_attr(const QString& image_path) {
         
-        image_attr result;
+        image_attr result{};
         
         const QFileInfo info{image_path};
         const QImage image{image_path};
