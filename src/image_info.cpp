@@ -1,15 +1,13 @@
-#include "image_attr.hpp"
+#include "image_info.hpp"
 #include "exception.hpp"
 
 #include "pHash.h"
 
 #include <QDir>
 #include <QFile>
-#include <QFileInfo>
 #include <QHash>
 #include <QImage>
 #include <QMimeDatabase>
-#include <QString>
 #include <QTemporaryFile>
 
 #include "gsl/gsl"
@@ -62,23 +60,20 @@ namespace myriad {
         }
     }
 
-    image_attr read_attr(const QString& image_path) {
-        
-        image_attr result{};
-        
-        const QFileInfo info{image_path};
-        const QImage image{image_path};
+    image_info::image_info(const QString& path)
+        : m_file_info{path} {
+
+        const QImage image{path};
         if (image.isNull()) {
-            throw file_io_error{image_path};
+            throw file_io_error{path};
         }
         
-        result.width = image.width();
-        result.height = image.height();
+        m_width = image.width();
+        m_height = image.height();
         
-        result.checksum = checksum(image_path);
-        result.file_size = info.size();
-        result.format = format(image_path);
-        
+        m_checksum = myriad::checksum(path);
+        m_format = myriad::format(path);
+
         // While ulong64 and std::uint64_t are specified to be compatible types, there is
         // potentially a conversion between the two that prevents a reference to result.phash from
         // being passed directly to ph_dct_imagehash().
@@ -89,8 +84,8 @@ namespace myriad {
         // of those formats, a temporary bitmap file is created and used to calculate the hash
         // value.
 
-        if (result.format == image_format::jpeg || result.format == image_format::bmp) {
-            ph_dct_imagehash(image_path.toLatin1(), phash);
+        if (m_format == image_format::jpeg || m_format == image_format::bmp) {
+            ph_dct_imagehash(path.toLatin1(), phash);
         }
         else {
 
@@ -105,7 +100,14 @@ namespace myriad {
             ph_dct_imagehash(temp_path.toLatin1(), phash);
         }
         
-        result.phash = phash;
-        return result;
+        m_phash = phash;
+    }
+    
+    bool operator==(const image_info& lhs, const image_info& rhs) {
+        return lhs.m_file_info == rhs.m_file_info;
+    }
+    
+    bool operator!=(const image_info& lhs, const image_info& rhs) {
+        return !(lhs == rhs);
     }
 }
