@@ -20,7 +20,7 @@ namespace myriad {
 
     class engine : public QObject {
         Q_OBJECT
-        
+
     public:
 
         ///
@@ -29,6 +29,8 @@ namespace myriad {
         ///
 
         enum class phase { scan, hash, compare };
+
+        explicit engine();
 
         ///
         /// Merges a list of new image files with a "collection" of existing ones by identifying
@@ -52,18 +54,18 @@ namespace myriad {
         /// engine's thread. If \p input_image_paths contains paths that are descendants of
         /// \p collection_path, they are treated as part of the collection and not as inputs.
         ///
-        
+
         Q_INVOKABLE
         void merge(QStringList input_image_paths, const QString &collection_path) const;
-        
+
     Q_SIGNALS:
-        
+
         void input_count_changed(int file_count, int folder_count) const;
         void phase_changed(phase new_phase) const;
         void progress_changed(int percent_complete) const;
 
     private:
-        
+
         ///
         /// Constructs an \ref image_info object for each filesystem path in \p paths, emitting the
         /// progress_changed() signal to indicate how close to completion this process is. A single
@@ -108,10 +110,12 @@ namespace myriad {
         /// have been determined, it is important that these are accurately communicated; when this
         /// happens, \p type should be set to ksr::dense_update_type::final to force an emission.
         ///
-        
+
         void signal_scan_progress(
             int file_count, int folder_count,
             ksr::dense_update_type type = ksr::dense_update_type::transient) const;
+
+        ksr::dense_updater<std::chrono::milliseconds> m_updater;
     };
 }
 
