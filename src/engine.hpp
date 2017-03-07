@@ -2,11 +2,12 @@
 #define MYRIAD_ENGINE_HPP
 
 #include "image_info.hpp"
+#include "pairer.hpp"
 #include "ksr/dense_updater.hpp"
 
 #include <QObject>
 #include <QStringList>
-#include <vector>
+#include <unordered_set>
 
 class QString;
 
@@ -56,7 +57,7 @@ namespace myriad {
         ///
 
         Q_INVOKABLE
-        void merge(QStringList input_image_paths, const QString &collection_path) const;
+        void merge(const QStringList& input_image_paths, const QString& collection_path) const;
 
     Q_SIGNALS:
 
@@ -65,6 +66,19 @@ namespace myriad {
         void progress_changed(int percent_complete) const;
 
     private:
+
+        ///
+        /// Compares images as specified by \p pair_strategy, emitting the progress_changed() signal
+        /// to indicate how close to completion this process is. A single merge operation may use a
+        /// sequence of different \p pairer strategies; because of this, a call to compare_images()
+        /// need not take the emitted progress from 0 to 100. \p start_count specifies how many
+        /// images have already been compared before this particular call to compare_images() was
+        /// made; \p total_count specifies how many images need to be compared before that phase of
+        /// the merge operation is considered complete. This operation may be interrupted by
+        /// requesting an interruption on the engine's thread.
+        ///
+
+        int compare_images(pairer& pair_strategy, int start_count, int total_count) const;
 
         ///
         /// Constructs an \ref image_info object for each filesystem path in \p paths, emitting the
@@ -77,7 +91,7 @@ namespace myriad {
         /// may be interrupted by requesting an interruption on the engine's thread.
         ///
 
-        std::vector<image_info> hash_images(
+        image_set hash_images(
             const QStringList &paths, int start_count, int total_count) const;
 
         ///
@@ -117,6 +131,8 @@ namespace myriad {
 
         ksr::dense_updater<std::chrono::milliseconds> m_updater;
     };
+
+    bool thread_interrupted();
 }
 
 #endif

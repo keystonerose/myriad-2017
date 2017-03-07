@@ -1,5 +1,11 @@
 # Non-stylistic concessions made by this configuration:
 #
+# * google-explicit-constructor precludes certain useful constructor definitions for library-like
+#   types; see for example ksr::function_view.
+# * reinterpret_cast is legitimately useful for type erasure, so
+#   cppcoreguidelines-pro-type-reinterpret-cast is turned off.
+# * readability-avoid-const-params-in-decls is a bit buggy as written; while generally a good
+#   guideline, it also picks up const parameter declarations for member functions defined in-line.
 # * readability-identifier-naming.{Class|Struct}Case should be lower_case, but this prevents the
 #   forward-declaration of external classes (e.g. QString). This is an issue that has since been
 #   fixed in Clang master.
@@ -7,12 +13,12 @@
 #   signal definitions with parameter names different from those of their declarations).
 
 ---
-Checks:                '*,-google-build-using-namespace,-google-readability-namespace-comments,-google-runtime-references,-llvm-include-order,-llvm-namespace-comment,-readability-inconsistent-declaration-parameter-name'
+Checks:                '*,-cppcoreguidelines-pro-type-reinterpret-cast,-google-build-using-namespace,-google-explicit-constructor,-google-readability-namespace-comments,-google-runtime-references,-llvm-include-order,-llvm-namespace-comment,-readability-avoid-const-params-in-decls,-readability-inconsistent-declaration-parameter-name'
 WarningsAsErrors:      ''
 HeaderFilterRegex:     '\.hpp$'
 AnalyzeTemporaryDtors: false
 User:                  james
-CheckOptions:    
+CheckOptions:
   - key:             cert-dcl59-cpp.HeaderFileExtensions
     value:           ',h,hh,hpp,hxx'
   - key:             cert-err61-cpp.CheckThrowTemporaries

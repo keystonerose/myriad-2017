@@ -13,7 +13,7 @@ namespace myriad {
     /// Myriad supports all formats supported by \c QImage, most of these receive no special
     /// treatment and are therefore grouped under the \c other enumerator.
     ///
-    
+
     enum class image_format { other, bmp, gif, jpeg, png };
 
     ///
@@ -24,10 +24,10 @@ namespace myriad {
     /// of the significant work done by an \ref image_info object is performed upon construction;
     /// after that point, attributes may be queried from the object at negligible performance cost.
     ///
-    
+
     class image_info {
     public:
-        
+
         ///
         /// Determines whether two \ref image_info objects describe files in the same location on
         /// disk. Note that this is a stronger criterion than \p lhs and \p rhs being bytewise
@@ -35,14 +35,14 @@ namespace myriad {
         ///
         friend bool operator==(const image_info& lhs, const image_info& rhs);
         friend bool operator!=(const image_info& lhs, const image_info& rhs);
-        
+
         ///
         /// Fetches information about the image file at the filesystem path \p path and constructs
         /// an \ref image_info object to store that information. Since the stored image attributes
         /// include the perceptual hash of the image, this is an expensive operation.
         /// \throws file_io_error if image data could not be read from \p path.
         ///
-        
+
         explicit image_info(const QString& path);
 
         std::uint16_t checksum() const {
@@ -52,11 +52,11 @@ namespace myriad {
         std::uint64_t file_size() const {
             return m_file_info.size();
         }
-        
+
         image_format format() const {
             return m_format;
         }
-        
+
         int height() const {
             return m_height;
         }
@@ -72,16 +72,16 @@ namespace myriad {
         int width() const {
             return m_width;
         }
-        
+
     private:
-        
+
         int m_width = 0;
         int m_height = 0;
 
         image_format m_format = image_format::other;
         std::uint16_t m_checksum = 0;
         std::uint64_t m_phash = 0;
-        
+
         QFileInfo m_file_info;
     };
 }
