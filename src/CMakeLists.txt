@@ -1,7 +1,10 @@
 set(MYRIAD_SRCS
-   ${MYRIAD_SRCS}
-   ${CMAKE_CURRENT_SOURCE_DIR}/exception.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/image_attr.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-   PARENT_SCOPE
+    ${MYRIAD_SRCS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/exception.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/hash.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/image_info.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pairer.cpp
+    PARENT_SCOPE
 )
