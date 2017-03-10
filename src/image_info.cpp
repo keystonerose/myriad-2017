@@ -10,7 +10,6 @@
 #include <QMimeDatabase>
 #include <QTemporaryFile>
 
-#include "gsl/gsl"
 #include <unordered_map>
 
 namespace myriad {
@@ -29,8 +28,6 @@ namespace myriad {
             if (!file.open(QIODevice::ReadOnly)) {
                 throw file_io_error{path};
             }
-
-            auto close_act = gsl::finally([&file] { file.close(); });
 
             const auto raw_data  = file.readAll();
             return qChecksum(raw_data, raw_data.length());
