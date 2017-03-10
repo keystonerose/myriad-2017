@@ -1,19 +1,30 @@
-# Non-stylistic concessions made by this configuration:
+# Non-subjective concessions made by this configuration:
 #
-# * google-explicit-constructor precludes certain useful constructor definitions for library-like
-#   types; see for example ksr::function_view.
-# * reinterpret_cast is legitimately useful for type erasure, so
-#   cppcoreguidelines-pro-type-reinterpret-cast is turned off.
-# * readability-avoid-const-params-in-decls is a bit buggy as written; while generally a good
-#   guideline, it also picks up const parameter declarations for member functions defined in-line.
-# * readability-identifier-naming.{Class|Struct}Case should be lower_case, but this prevents the
-#   forward-declaration of external classes (e.g. QString). This is an issue that has since been
-#   fixed in Clang master.
-# * readability-inconsistent-declaration-parameter-name doesn't work with MOC (which generates
-#   signal definitions with parameter names different from those of their declarations).
+# [cert-dcl58-cpp]
+# This one forbids doing anything in the std namespace; however, it's perfectly well-defined and
+# in some cases necessary to specialise certain templates in that namespace (e.g. std::hash).
+#
+# [cppcoreguidelines-pro-type-reinterpret-cast]
+# reinterpret_cast is legitimately useful (with well-defined behaviour) for type erasure.
+#
+# [google-explicit-constructor]
+# This precludes certain useful constructor definitions for library-like types; see for example
+# ksr::function_view.
+#
+# [llvm-header-guard]
+# I have no idea what the format of a header guard needs to be for it to "adhere to LLVM style", and
+# the LLVM coding standards say nothing about this. Out it goes.
+#
+# [readability-avoid-const-params-in-decls]
+# This check is a bit is a bit buggy as written; while I generally agree with it as a guideline, it
+# currently also picks up const parameter declarations for inline member functions definitions.
+#
+# [readability-inconsistent-declaration-parameter-name]
+# This doesn't work with Qt's MOC, which generates signal definitions with parameter names different
+# from those of their declarations.
 
 ---
-Checks:                '*,-cppcoreguidelines-pro-type-reinterpret-cast,-google-build-using-namespace,-google-explicit-constructor,-google-readability-namespace-comments,-google-runtime-references,-llvm-include-order,-llvm-namespace-comment,-readability-avoid-const-params-in-decls,-readability-inconsistent-declaration-parameter-name'
+Checks:                '*,-cert-dcl58-cpp,-cppcoreguidelines-pro-type-reinterpret-cast,-google-build-using-namespace,-google-explicit-constructor,-google-readability-namespace-comments,-google-runtime-references,-llvm-header-guard,-llvm-include-order,-llvm-namespace-comment,-readability-avoid-const-params-in-decls,-readability-inconsistent-declaration-parameter-name'
 WarningsAsErrors:      ''
 HeaderFilterRegex:     '\.hpp$'
 AnalyzeTemporaryDtors: false
@@ -138,7 +149,7 @@ CheckOptions:
   - key:             readability-identifier-naming.AbstractClassSuffix
     value:           ''
   - key:             readability-identifier-naming.ClassCase
-    value:           aNy_CasE
+    value:           lower_case
   - key:             readability-identifier-naming.ClassConstantCase
     value:           lower_case
   - key:             readability-identifier-naming.ClassConstantPrefix
@@ -338,7 +349,7 @@ CheckOptions:
   - key:             readability-identifier-naming.StaticVariableSuffix
     value:           ''
   - key:             readability-identifier-naming.StructCase
-    value:           aNy_CasE
+    value:           lower_case
   - key:             readability-identifier-naming.StructPrefix
     value:           ''
   - key:             readability-identifier-naming.StructSuffix
