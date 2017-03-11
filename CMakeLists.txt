@@ -58,10 +58,12 @@ find_package(PNG REQUIRED)
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 
+include_directories(src)
 include_directories(SYSTEM ${3RDPARTY_DIR}/GSL/include)
 include_directories(SYSTEM ${PHASH_DIR}/include)
 
 add_subdirectory(src)
+add_subdirectory(src/test_ksr)
 add_executable(myriad ${MYRIAD_SRCS})
 add_dependencies(myriad libphash)
 
