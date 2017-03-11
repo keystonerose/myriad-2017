@@ -129,7 +129,8 @@ namespace myriad {
             int file_count, int folder_count,
             ksr::dense_update_type type = ksr::dense_update_type::transient) const;
 
-        ksr::dense_updater<std::chrono::milliseconds> m_updater;
+        const ksr::dense_updater<std::chrono::milliseconds> m_dense_updater;
+        const ksr::progress_updater m_progress_updater;
     };
 
     bool thread_interrupted();

@@ -18,7 +18,6 @@
 #include <chrono>
 #include <cmath>
 #include <iterator>
-#include <numeric>
 
 using namespace std::chrono_literals;
 
@@ -41,11 +40,6 @@ namespace myriad {
 
             const auto& supported = supported_mime_types();
             return supported.contains(mime_name.toLatin1());
-        }
-
-        int int_percentage(const int num, const int denom) {
-            const auto result = std::lround(100.0f * static_cast<float>(num) / static_cast<float>(denom));
-            return gsl::narrow_cast<int>(result);
         }
 
         ///
