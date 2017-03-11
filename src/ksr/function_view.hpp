@@ -25,6 +25,8 @@ namespace ksr {
     class function_view<Ret(Args...)> {
     public:
 
+        // TODO Action the [C++17] items here
+
         // [C++17] It would be useful to constrain this constructor further with the
         // std::is_callable() type trait (though not sufficiently so that it's worth writing such a
         // trait by hand).
@@ -33,8 +35,7 @@ namespace ksr {
             typename T,
             typename = std::enable_if_t<!std::is_base_of<function_view, std::decay_t<T>>::value>>
         function_view(T&& function) noexcept
-          : m_invoke{&function_view::invoke<T>}, m_ptr{std::addressof(function)} {
-        }
+          : m_invoke{&function_view::invoke<T>}, m_ptr{std::addressof(function)} {}
 
         // [C++17] It may be possible to get the noexcept specification of operator() correct once
         // this is part of the type system (though I'm not sure how practical it'll be to do).

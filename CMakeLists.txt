@@ -55,7 +55,7 @@ find_package(PNG REQUIRED)
 # doing this, we tell Qt5::Core to forget about requiring specific C++11 compiler features (which
 # we're ensuring for it in this case).
 
-find_package(Qt5 REQUIRED COMPONENTS Widgets)
+find_package(Qt5 REQUIRED COMPONENTS Widgets Test)
 set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 
 include_directories(src)

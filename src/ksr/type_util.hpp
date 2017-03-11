@@ -1,7 +1,7 @@
 #ifndef KSR_TYPE_UTIL_HPP
 #define KSR_TYPE_UTIL_HPP
 
-#include <cassert>
+#include "error.hpp"
 #include <type_traits>
 
 namespace ksr {
@@ -23,9 +23,10 @@ namespace ksr {
         ///
         /// An extension of \c std::underlying_type that is applicable to arbitrary types. If \p T
         /// is an enumeration type, the returned type (tag) corresponds to that specified by
-        /// \c std::underlying_type; otherwise, \p T itself is returned. This function is wrapped by
-        /// the alias \c underlying_type_t, which is expressed in terms of types rather than type
-        /// tags but otherwise has identical behaviour.
+        /// \c std::underlying_type; otherwise, \p T itself is returned, with any CV qualifiers
+        /// removed (for consistency with former case). This function is wrapped by the alias
+        /// \c underlying_type_t, which is expressed in terms of types rather than type tags but
+        /// otherwise has identical behaviour.
         ///
 
         template <typename T>
@@ -33,7 +34,7 @@ namespace ksr {
             if constexpr (std::is_enum_v<T>) {
                 return tag<std::underlying_type_t<T>>{};
             } else {
-                return tag<T>{};
+                return tag<std::remove_cv_t<T>>{};
             }
         }
     }
@@ -60,12 +61,12 @@ namespace ksr {
         static_assert(std::is_arithmetic_v<To> || std::is_enum_v<To>);
 
         const auto result = static_cast<To>(from);
-        assert(static_cast<From>(result) != from);
+        KSR_ASSERT(static_cast<From>(result) != from);
 
         constexpr auto is_from_signed = std::is_signed_v<underlying_type_ext_t<From>>;
         constexpr auto is_to_signed = std::is_signed_v<underlying_type_ext_t<To>>;
         if constexpr (is_from_signed != is_to_signed) {
-            assert((from < From{}) != (result < To{}));
+            KSR_ASSERT((from < From{}) != (result < To{}));
         }
 
         return result;
