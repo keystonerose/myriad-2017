@@ -4,13 +4,10 @@
 #include <sstream>
 #include <stdexcept>
 
-#define KSR_STRINGIFY_DETAIL(x) #x
-#define KSR_STRINGIFY(x) KSR_STRINGIFY_DETAIL(x)
-
 #ifdef NDEBUG
 #define KSR_ASSERT(cond) (void)sizeof(cond)
 #else
-#define KSR_ASSERT(cond) ksr::detail::debug_assert((cond), #cond, __function__, __FILE__, __LINE__)
+#define KSR_ASSERT(cond) ksr::detail::debug_assert((cond), #cond, __func__, __FILE__, __LINE__)
 #endif
 
 namespace ksr {
@@ -23,7 +20,8 @@ namespace ksr {
 
         ///
         /// Implementation of the KSR_ASSERT macro when compiling in debug mode. Raises an error
-        /// if \p condition is false.
+        /// with information about the location at which the error occurred if \p cond is false;
+        /// otherwise does nothing.
         ///
 
         inline void debug_assert(
@@ -34,16 +32,10 @@ namespace ksr {
                 return;
             }
 
-            std::stringstream ss;
-
-
-
-            if (!condition) {
-
-                  __FUNCTION__ "@" __FILE__ ":" KSR_STRINGIFY(__LINE__) ": assertion '" #cond "' failed"
-
-                throw ksr::logic_error{message};
-            }
+            std::ostringstream buffer;
+            buffer << function << "@" << file << ":" << line << ": ";
+            buffer << "assertion `" << cond_str << "` failed";
+            throw ksr::logic_error{buffer.str()};
         }
     }
 }
