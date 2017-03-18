@@ -23,7 +23,7 @@ parserArgumentsC=-ferror-limit=100 -fspell-checking -Wdocumentation -Wunused-par
 Name=Clang
 
 [Launch]
-Launch Configurations=Launch Configuration 0
+Launch Configurations=Launch Configuration 0,Launch Configuration 1
 
 [Launch][Launch Configuration 0]
 Configured Launch Modes=execute
@@ -39,6 +39,24 @@ EnvironmentGroup=
 Executable=file:///home/james/development/projects/myriad-2017
 External Terminal=konsole --noclose --workdir %workdir -e %exe
 Project Target=Myriad 2017,myriad
+Use External Terminal=false
+Working Directory=
+isExecutable=false
+
+[Launch][Launch Configuration 1]
+Configured Launch Modes=execute
+Configured Launchers=nativeAppLauncher
+Name=test_narrow_cast
+Type=Native Application
+
+[Launch][Launch Configuration 1][Data]
+Arguments=
+Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x04\x00\x00\x00\x16\x00M\x00y\x00r\x00i\x00a\x00d\x00 \x002\x000\x001\x007\x00\x00\x00\x06\x00s\x00r\x00c\x00\x00\x00\x10\x00t\x00e\x00s\x00t\x00_\x00k\x00s\x00r\x00\x00\x00 \x00t\x00e\x00s\x00t\x00_\x00n\x00a\x00r\x00r\x00o\x00w\x00_\x00c\x00a\x00s\x00t)
+Dependency Action=Build
+EnvironmentGroup=
+Executable=file:///home/james/development/projects/myriad-2017
+External Terminal=konsole --noclose --workdir %workdir -e %exe
+Project Target=Myriad 2017,src,test_ksr,test_narrow_cast
 Use External Terminal=false
 Working Directory=
 isExecutable=false

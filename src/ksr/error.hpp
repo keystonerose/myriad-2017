@@ -5,10 +5,17 @@
 #include <sstream>
 #include <stdexcept>
 
-#if defined(NDEBUG)
-#define KSR_ASSERT(cond) (void)sizeof(cond)
-#elif defined(KSR_THROW_ON_ASSERT)
+///
+/// If \c KSR_THROW_ON_ASSERT is defined, the macro \ref KSR_ASSERT will cause an exception of type
+/// \ref ksr::logic_error to be thrown on failure; otherwise, it will have no effect (but not raise
+/// an unused-variable warning) if \c NDEBUG is defined, or evaluate to the standard \ref assert
+/// otherwise.
+///
+
+#if defined(KSR_THROW_ON_ASSERT)
 #define KSR_ASSERT(cond) ksr::detail::throw_assert((cond), #cond, __func__, __FILE__, __LINE__)
+#elif defined(NDEBUG)
+#define KSR_ASSERT(cond) (void)sizeof(cond)
 #else
 #define KSR_ASSERT(cond) assert(cond)
 #endif

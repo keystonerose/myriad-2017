@@ -2,74 +2,54 @@
 #define KSR_TYPE_UTIL_HPP
 
 #include "error.hpp"
+#include "type_traits.hpp"
+
 #include <type_traits>
 
 namespace ksr {
 
-    namespace type_tags {
+    ///
+    /// Uses \c static_cast to perform a narrowing conversion of the value \p input to a
+    /// corresponding value of type \p OutputType. \p InputType and \p OutputType must be integral
+    /// or enumeration types. For release builds, the behaviour of this function is identical to
+    /// that of \c static_cast and it generates no machine code; in debug builds, it asserts when
+    /// \p input is not representable by \p OutputType.
+    ///
 
-        ///
-        /// Wraps a single type \p T in an object that can be passed to or returned from
-        /// \c constexpr functions performing compile-time operations on types. The tagged type can
-        /// be retrieved from a \ref tag object using \c decltype and the (undefined) member
-        /// function get().
-        ///
+    template <typename OutputType, typename InputType>
+    constexpr std::enable_if_t<detail::can_narrow_v<InputType, OutputType>, OutputType>
+    narrow_cast(const InputType input) {
 
-        template <typename T>
-        struct tag {
-            static constexpr T get();
-        };
+        // TODO:HERE
 
-        ///
-        /// An extension of \c std::underlying_type that is applicable to arbitrary types. If \p T
-        /// is an enumeration type, the returned type (tag) corresponds to that specified by
-        /// \c std::underlying_type; otherwise, \p T itself is returned, with any CV qualifiers
-        /// removed (for consistency with former case). This function is wrapped by the alias
-        /// \c underlying_type_t, which is expressed in terms of types rather than type tags but
-        /// otherwise has identical behaviour.
-        ///
+        // Hmmm
+        // see http://stackoverflow.com/questions/17860657/well-defined-narrowing-cast
 
-        template <typename T>
-        constexpr auto underlying_type_ext(tag<T>) {
-            if constexpr (std::is_enum_v<T>) {
-                return tag<std::underlying_type_t<T>>{};
-            } else {
-                return tag<std::remove_cv_t<T>>{};
-            }
+        using underlying_input_t = underlying_type_ext_t<InputType>;
+        using underlying_output_t = underlying_type_ext_t<OutputType>;
+
+        static_assert(std::is_arithmetic_v<underlying_input_t>);
+        static_assert(std::is_arithmetic_v<underlying_output_t>);
+
+        const auto output = static_cast<OutputType>(input);
+
+        if constexpr (std::is_integral_v<InputType> &&
+
+        KSR_ASSERT(static_cast<InputType>(output) == input);
+        KSR_ASSERT((input < InputType{}) == (output < OutputType{}));
+
+        /*
+        // TODO:remove? Maybe not, since we'll need to convert to underlying type when supporting
+        // enums
+
+        constexpr auto is_input_signed = std::is_signed_v<underlying_type_ext_t<InputType>>;
+        constexpr auto is_output_signed = std::is_signed_v<underlying_type_ext_t<OutputType>>;
+        if constexpr (is_input_signed != is_output_signed) {
+            KSR_ASSERT((input < InputType{}) == (output < OutputType{}));
         }
-    }
+        */
 
-    template <typename T>
-    using underlying_type_ext_t = decltype(type_tags::underlying_type_ext(type_tags::tag<T>{}).get());
-
-    ///
-    /// Uses \c static_cast to perform a narrowing conversion of the value \p from to a
-    /// corresponding value of type \p To. \p From and \p To must be arithmetic or enumeration
-    /// types. For release builds, the behaviour of this function is identical to that of
-    /// \c static_cast and it generates no machine code; in debug builds, it asserts when the
-    /// narrowing conversion caused information to be lost.
-    ///
-    /// This is an adaptation of the functionality provided by <tt>gsl::narrow()</tt>, but extends
-    /// that functionality to also cover enumeration types and, in providing identical behaviour to
-    /// \c static_cast for release builds, facilitates more extensive use.
-    ///
-
-    template <typename To, typename From>
-    constexpr To narrow_cast(const From from) {
-
-        static_assert(std::is_arithmetic_v<From> || std::is_enum_v<From>);
-        static_assert(std::is_arithmetic_v<To> || std::is_enum_v<To>);
-
-        const auto result = static_cast<To>(from);
-        KSR_ASSERT(static_cast<From>(result) != from);
-
-        constexpr auto is_from_signed = std::is_signed_v<underlying_type_ext_t<From>>;
-        constexpr auto is_to_signed = std::is_signed_v<underlying_type_ext_t<To>>;
-        if constexpr (is_from_signed != is_to_signed) {
-            KSR_ASSERT((from < From{}) != (result < To{}));
-        }
-
-        return result;
+        return output;
     }
 }
 

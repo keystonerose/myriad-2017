@@ -1,9 +1,9 @@
 enable_testing()
 
-add_executable(test_type_util test_type_util.cpp)
-add_test(test_type_util test_type_util)
+add_executable(test_narrow_cast test_narrow_cast.cpp)
+add_test(test_narrow_cast test_narrow_cast)
 
-target_link_libraries(test_type_util Qt5::Test)
+target_link_libraries(test_narrow_cast Qt5::Test)
 
 
 
