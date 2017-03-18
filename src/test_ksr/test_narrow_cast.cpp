@@ -1,3 +1,4 @@
+#define KSR_THROW_ON_ASSERT
 #include "ksr/type_util.hpp"
 
 #include <QObject>
@@ -5,37 +6,66 @@
 
 #include <cstdint>
 #include <cstdlib>
+#include <function>
 #include <type_traits>
 
 // TODO:HERE
-/*
-class narrow_cast_row {
+
+template <typename From, typename To>
+std::function<narrow_cast_result()> narrow_cast_case(const From from, const To to) {
+    return [from] {
+
+        try {
+            ksr::narrow_cast<To>(from);
+        } catch (const ksr::logic_error &) {
+            return true;
+        }
+
+        return false;
+    };
+}
+
+class narrow_cast_case {
 public:
 
-    template <typename T>
-    explicit narrow_cast_row()
-      : m_store{&erased_type::store<T>} {}
+    template <typename From, typename To>
+    explicit narrow_cast_row(const From from, const To to)
+      : m_from{}, m_to{} {}
+
+    bool throws() const {
+        return this->*m_throws();
+    }
 
 private:
 
-    template <typename T>
-    void store();
+    template <typename From, typename To>
+    bool throws_impl() const {
 
-    using store_inst = void (erased_type::*)();
-    store_inst m_store;
+        const auto from = std::any_cast<From>(m_from);
+        const auto to = std::any_cast<To>(m_to);
 
-    std::array<unsigned char, 8> m_storage;
+
+    }
+
+    using throws_inst = bool (narrow_cast_case::*)();
+    throws_inst m_throws;
+
+    std::any m_from;
+    std::any m_to;
 };
 
-class erased_safe_narrowing {
-};
-*/
-
-class test_type_util : public QObject {
+class test_narrow_cast : public QObject {
     Q_OBJECT
 
+private:
+
+    struct result {
+        bool expected_output;
+        bool expected_throws;
+    };
+
 private slots:
-    void test_narrow_cast();
+    void test();
 };
 
 enum class scoped_enum { item = 0xff };

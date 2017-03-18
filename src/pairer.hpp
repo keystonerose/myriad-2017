@@ -36,6 +36,7 @@ namespace myriad {
         /// implementation, when the pair() member function is executed to completion.
         ///
 
+        // TODO return uint64_t?
         virtual int count() const = 0;
 
         ///

@@ -55,7 +55,7 @@ namespace ksr {
     ///
 
     template <typename To, typename From>
-    constexpr To narrow_cast(const From from) noexcept {
+    constexpr To narrow_cast(const From from) {
 
         static_assert(std::is_arithmetic_v<From> || std::is_enum_v<From>);
         static_assert(std::is_arithmetic_v<To> || std::is_enum_v<To>);
