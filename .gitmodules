@@ -1,3 +1,6 @@
 [submodule "3rdparty/GSL"]
 	path = 3rdparty/GSL
 	url = https://github.com/Microsoft/GSL.git
+[submodule "ksr"]
+	path = ksr
+	url = https://github.com/keystonerose/ksr
