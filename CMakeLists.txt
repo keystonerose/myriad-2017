@@ -1,23 +1,14 @@
 cmake_minimum_required(VERSION 3.6)
 project(myriad)
 
-# The explicit compiler setup here isn't ideal for building on other systems, but since Myriad
-# targets C++17 (via Clang 5 and libstdc++ 7 on my machine, neither of which has yet seen an
-# official release), the setup here needs to be a little unusual for now. Once C++17 toolchains are
-# more widely available, the need for a specialised setup here will be obviated.
-
-set(CMAKE_C_COMPILER "/usr/bin/clang")
-set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
-
-set(CLANG_FLAGS "--gcc-toolchain=/opt/gcc7 -Wall -Wextra")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CLANG_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z ${CLANG_FLAGS}")
-
+include(ksr/cpp17.cmake)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
 set(3RDPARTY_DIR "3rdparty")
 set(INSTALL_DIR "install")
+
+set(KSR_DIR "ksr")
 set(PHASH_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${3RDPARTY_DIR}/libphash")
 set(PHASH_SRC_DIR "${PHASH_DIR}/src/libphash")
 set(PHASH_LIBRARY "${PHASH_DIR}/lib/libpHash.a")
@@ -60,6 +51,7 @@ set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 
 include_directories(SYSTEM ${3RDPARTY_DIR}/GSL/include)
 include_directories(SYSTEM ${PHASH_DIR}/include)
+include_directories(${KSR_DIR}/include)
 
 add_subdirectory(src)
 add_executable(myriad ${MYRIAD_SRCS})
