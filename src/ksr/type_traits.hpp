@@ -114,10 +114,14 @@ namespace ksr {
 
             if constexpr (std::is_floating_point_v<output_t> && std::is_floating_point_v<input_t>) {
 
-                constexpr auto floating_point_ranks = type_seq<float, double, long double>{};
-                return floating_point_ranks.less(tag<output_t>{}, tag<input_t>{});
+                constexpr auto float_ranks = type_seq<float, double, long double>{};
+                return float_ranks.less(tag<output_t>{}, tag<input_t>{});
 
             } else {
+
+                constexpr auto int_ranks = type_seq<bool, char, short, int, long, long long>{};
+
+
 
                 using underlying_output_t = underlying_type_ext_t<output_t>;
                 using underlying_input_t = underlying_type_ext_t<input_t>;
