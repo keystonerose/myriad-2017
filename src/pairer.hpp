@@ -20,6 +20,9 @@ namespace myriad {
 
     enum class discard_choice { none, lhs, rhs };
 
+    // TODO We don't need the virtual function mechanism (and therefore function_view); a
+    // templatised approach would be better.
+
     ///
     /// \ref pairer implementations provide specific algorithms for matching up images within one or
     /// more containers, defining which images get compared to which other images and the order in

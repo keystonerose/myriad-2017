@@ -3,7 +3,7 @@
 
 #include "image_info.hpp"
 #include "pairer.hpp"
-#include "ksr/dense_updater.hpp"
+#include "ksr/update_filter.hpp"
 
 #include <QObject>
 #include <QStringList>
@@ -116,20 +116,7 @@ namespace myriad {
 
         void signal_phase_change(phase new_phase) const;
 
-        ///
-        /// Emits the input_count_changed() signal to indicate that progress has been made on a scan
-        /// operation. Since the input count changes very rapidly during a scan, an emission is not
-        /// made for every increment in \p file_count and \p folder_count; rather, a minimum
-        /// interval is enforced between emissions. However, once the final file and folder counts
-        /// have been determined, it is important that these are accurately communicated; when this
-        /// happens, \p type should be set to ksr::dense_update_type::final to force an emission.
-        ///
-
-        void signal_scan_progress(
-            int file_count, int folder_count,
-            ksr::dense_update_type type = ksr::dense_update_type::transient) const;
-
-        ksr::dense_updater<std::chrono::milliseconds> m_updater;
+        mutable ksr::sampled_filter<int, int> m_input_signaller;
     };
 
     bool thread_interrupted();

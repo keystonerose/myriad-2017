@@ -20,7 +20,7 @@
 #include <iterator>
 #include <numeric>
 
-using namespace std::chrono_literals;
+using namespace std::literals::chrono_literals;
 
 namespace myriad {
 
@@ -60,8 +60,9 @@ namespace myriad {
     }
 
     engine::engine()
-      : m_updater{20ms} {
-    }
+      : m_input_signaller{20ms, [this](const int file_count, const int folder_count) {
+            Q_EMIT input_count_changed(file_count, folder_count);
+        }} {}
 
     int engine::compare_images(
         pairer& pair_strategy, const int start_count, const int total_count) const {
@@ -120,10 +121,10 @@ namespace myriad {
         auto folder_count = 0;
 
         signal_phase_change(phase::scan);
-        signal_scan_progress(0, 0);
+        m_input_signaller.sync(0, 0);
 
         scan_for_images(collection_path, collection_image_paths, folder_count);
-        signal_scan_progress(collection_image_paths.size(), folder_count, ksr::dense_update_type::final);
+        m_input_signaller.sync(collection_image_paths.size(), folder_count);
 
         signal_phase_change(phase::hash);
 
@@ -158,7 +159,7 @@ namespace myriad {
 
             if (file_supported(base_path)) {
                 image_paths.push_back(base_path);
-                signal_scan_progress(image_paths.size(), folder_count);
+                m_input_signaller.update(image_paths.size(), folder_count);
             }
 
         } else if (info.isDir()) {
@@ -168,7 +169,7 @@ namespace myriad {
 
             const auto items = dir.entryInfoList();
             ++folder_count;
-            signal_scan_progress(image_paths.size(), folder_count);
+            m_input_signaller.update(image_paths.size(), folder_count);
 
             const auto end = std::cend(items);
             for (auto iter = std::cbegin(items); iter != end && !thread_interrupted(); ++iter) {
@@ -180,14 +181,6 @@ namespace myriad {
     void engine::signal_phase_change(const phase new_phase) const {
         Q_EMIT phase_changed(new_phase);
         Q_EMIT progress_changed(0);
-    }
-
-    void engine::signal_scan_progress(
-        const int file_count, const int folder_count, const ksr::dense_update_type type) const {
-
-        m_updater.try_update(type, [this, file_count, folder_count] {
-            Q_EMIT input_count_changed(file_count, folder_count);
-        });
     }
 
     bool thread_interrupted() {
