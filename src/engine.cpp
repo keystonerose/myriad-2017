@@ -43,11 +43,6 @@ namespace myriad {
             return supported.contains(mime_name.toLatin1());
         }
 
-        int int_percentage(const int num, const int denom) {
-            const auto result = std::lround(100.0f * static_cast<float>(num) / static_cast<float>(denom));
-            return gsl::narrow_cast<int>(result);
-        }
-
         ///
         /// Gets a list of all image MIME types that Myriad is able to process. May only be called
         /// after the \c QApplication instance has been created.
@@ -64,52 +59,34 @@ namespace myriad {
             Q_EMIT input_count_changed(file_count, folder_count);
         }} {}
 
-    int engine::compare_images(
-        pairer& pair_strategy, const int start_count, const int total_count) const {
-
-        auto count = start_count;
-        auto last_percent_complete = int_percentage(count, total_count);
+    template <typename pairer_t>
+    void engine::compare_images(
+        pairer_t& pairer, ksr::int_percentage_filter<int>& progress_signaller) const {
 
         // TODO Currently, total_count is not updated when images are removed and the number that
         // is eventually processed ultimately changes; we need a mechanism for keeping that value
         // up-to-date.
 
-        pair_strategy.pair(
-            [this, &count, &last_percent_complete, total_count]
-            (const image_info&, const image_info&) {
-
-                const auto percent_complete = int_percentage(count, total_count);
-                if (percent_complete > last_percent_complete) {
-                    Q_EMIT progress_changed(percent_complete);
-                    last_percent_complete = percent_complete;
-                }
-
-                ++count;
-                return discard_choice::none;
-            });
-
-        return count;
+        auto count = progress_signaller.count();
+        pairer.pair([&](const image_info&, const image_info&) {
+            const auto total_count = progress_signaller.total_count();
+            progress_signaller.update(++count, total_count);
+        });
     }
 
     image_set engine::hash_images(
-        const QStringList& paths, const int start_count, const int total_count) const {
+        const QStringList& paths, ksr::int_percentage_filter& progress_signaller) const {
 
         auto result = image_set{};
-        auto last_percent_complete = int_percentage(start_count, total_count);
+
+        const auto start_count = progress_signaller.count();
+        const auto total_count = progress_signaller.total_count();
 
         const auto begin = std::cbegin(paths);
         const auto end = std::cend(paths);
         for (auto iter = begin; iter != end && !thread_interrupted();) {
-
             result.emplace(*iter++);
-
-            const auto hashed_count = start_count + std::distance(begin, iter);
-            const auto percent_complete = int_percentage(hashed_count, total_count);
-
-            if (percent_complete > last_percent_complete) {
-                Q_EMIT progress_changed(percent_complete);
-                last_percent_complete = percent_complete;
-            }
+            progress_signaller.update(start_count + std::distance(begin, iter), total_count);
         }
 
         return result;
@@ -126,25 +103,30 @@ namespace myriad {
         scan_for_images(collection_path, collection_image_paths, folder_count);
         m_input_signaller.sync(collection_image_paths.size(), folder_count);
 
+        auto progress_signaller = ksr::int_percentage_filter<int>{
+            [](const auto num, const auto denom) {
+                Q_EMIT progress_changed(ksr::int_percentage(num, denom));
+            }};
+
         signal_phase_change(phase::hash);
+        progress_signaller.sync(0, image_count);
 
         const auto image_count = input_image_paths.size() + collection_image_paths.size();
-        auto inputs = hash_images(input_image_paths, 0, image_count);
-        auto collection = hash_images(collection_image_paths, inputs.size(), image_count);
+        auto inputs = hash_images(input_image_paths, progress_signaller);
+        auto collection = hash_images(collection_image_paths, progress_signaller);
 
         ksr::erase_if(inputs, [&collection](const image_info& item) {
             return collection.count(item) > 0;
         });
 
-        signal_phase_change(phase::compare);
-
         auto deduplicator = deduplicate_pairer{collection};
         auto merger = merge_pairer{inputs, collection};
 
-        auto count = 0;
-        const auto comp_count = deduplicator.count() + merger.count();
-        count = compare_images(deduplicator, count, comp_count);
-        compare_images(merger, count, comp_count);
+        signal_phase_change(phase::compare);
+        progress_signaller.sync(0, deduplicator.count() + merger.count());
+
+        compare_images(deduplicator, progress_signaller);
+        compare_images(merger, progress_signaller);
     }
 
     void engine::scan_for_images(

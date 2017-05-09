@@ -6,12 +6,53 @@
 #include "ksr/update_filter.hpp"
 
 #include <QObject>
+#include <QString>
 #include <QStringList>
+
+#include <functional>
 #include <unordered_set>
 
-class QString;
-
 namespace myriad {
+
+    class engine;
+
+    ///
+    /// Enumerates the processing states that the \ref engine passes through during a call to
+    /// merge(); refer to the documentation for that function for more details.
+    ///
+
+    enum class phase { scan, hash, compare };
+
+    template <phase>
+    struct phase_data;
+
+    template <>
+    class phase_data<phase::scan> {
+    public:
+
+        explicit phase_data(std::function<int, int> signal_callback)
+          : signaller{std::move(signal_callback)} {}
+
+        ksr::sampled_filter<int, int> signaller;
+    };
+
+    template <>
+    struct phase_data<phase::hash> {
+
+        explicit phase_data(std::function<int, int> signal_callback)
+          : signaller{std::move(signal_callback)} {}
+
+        ksr::int_percentage_filter<int> signaller;
+    };
+
+    template <>
+    struct phase_data<phase::compare> {
+
+        explicit phase_data(std::function<int, int> signal_callback)
+          : signaller{std::move(signal_callback)} {}
+
+        ksr::int_percentage_filter<int> signaller;
+    };
 
     ///
     /// A stateless class providing member functions that may be invoked from a different thread to
@@ -23,13 +64,6 @@ namespace myriad {
         Q_OBJECT
 
     public:
-
-        ///
-        /// Enumerates the processing states that the \ref engine passes through during a call to
-        /// merge(); refer to the documentation for that function for more details.
-        ///
-
-        enum class phase { scan, hash, compare };
 
         explicit engine();
 
@@ -68,17 +102,20 @@ namespace myriad {
     private:
 
         ///
-        /// Compares images as specified by \p pair_strategy, emitting the progress_changed() signal
-        /// to indicate how close to completion this process is. A single merge operation may use a
-        /// sequence of different \p pairer strategies; because of this, a call to compare_images()
-        /// need not take the emitted progress from 0 to 100. \p start_count specifies how many
-        /// images have already been compared before this particular call to compare_images() was
-        /// made; \p total_count specifies how many images need to be compared before that phase of
-        /// the merge operation is considered complete. This operation may be interrupted by
-        /// requesting an interruption on the engine's thread.
+        /// Compares images as specified by \p pairer (which should be of one of the classes defined
+        /// in `pairer.hpp`), emitting the progress_changed() signal to indicate how close to
+        /// completion this process is. A single merge operation may use a sequence of different
+        /// pairer strategies; because of this, a call to compare_images() need not take the emitted
+        /// progress from 0 to 100. \p start_count specifies how many images have already been
+        /// compared before this particular call to compare_images() was made; \p total_count
+        /// specifies how many images need to be compared before that phase of the merge operation
+        /// is considered complete. This operation may be interrupted by requesting an interruption
+        /// on the engine's thread.
         ///
 
-        int compare_images(pairer& pair_strategy, int start_count, int total_count) const;
+        template <typename pairer_t>
+        void compare_images(
+            pairer_t& pairer, ksr::int_percentage_filter<int>& progress_signaller) const;
 
         ///
         /// Constructs an \ref image_info object for each filesystem path in \p paths, emitting the

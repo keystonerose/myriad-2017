@@ -19,38 +19,28 @@ namespace myriad {
     using image_set = std::unordered_set<image_info>;
 
     enum class discard_choice { none, lhs, rhs };
-
-    // TODO We don't need the virtual function mechanism (and therefore function_view); a
-    // templatised approach would be better.
+    using compare_sig = discard_choice(const image_info&, const image_info&);
 
     ///
-    /// \ref pairer implementations provide specific algorithms for matching up images within one or
-    /// more containers, defining which images get compared to which other images and the order in
-    /// which these comparisons happen.
+    /// Each \c pairer implementation provides a specific algorithm for matching up images within
+    /// one or more containers, defining which images get compared to which other images and the
+    /// order in which these comparisons happen. It must provide the following member functions:
     ///
-
-    class pairer {
-    public:
-
-        using compare_sig = discard_choice(const image_info&, const image_info&);
-
-        ///
-        /// Calculates the number of image pairings that will be processed by the \ref pairer
-        /// implementation, when the pair() member function is executed to completion.
-        ///
-
-        virtual int count() const = 0;
-
-        ///
-        /// Matches up \ref image_info objects from within a container or containers referenced by
-        /// the specific \ref pairer implementation, and for each such pair, calls \p callback to
-        /// determine which of the pair (if either) should be discarded, then erases elements from
-        /// or moves elements between the underlying containers if appropriate before continuing.
-        /// This process may be interrupted by requesting an interruption on the calling thread.
-        ///
-
-        virtual void pair(ksr::function_view<compare_sig> callback) = 0;
-    };
+    /// ```c++
+    /// int count() const
+    /// ```
+    /// Calculates the number of image pairings that will be processed by the pairer when its pair()
+    /// member function is executed to completion.
+    ///
+    /// ```c++
+    /// void pair(Invocable<compare_sig> callback)
+    /// ```
+    /// Matches up \ref image_info objects from within a container or containers referenced by
+    /// the specific \ref pairer implementation, and for each such pair, calls \p callback to
+    /// determine which of the pair (if either) should be discarded, then erases elements from
+    /// or moves elements between the underlying containers if appropriate before continuing.
+    /// This process may be interrupted by requesting an interruption on the calling thread.
+    ///
 
     ///
     /// Pairs every \ref image_info object within a single container with every other such object
@@ -59,15 +49,15 @@ namespace myriad {
     /// image in the pair.
     ///
 
-    class deduplicate_pairer : public pairer {
+    class deduplicate_pairer {
     public:
 
         explicit deduplicate_pairer(image_set& set)
           : m_set{set} {
         }
 
-        int count() const override;
-        void pair(ksr::function_view<compare_sig> callback) override;
+        int count() const;
+        void pair(ksr::function_view<compare_sig> callback);
 
     private:
         image_set& m_set;
@@ -82,15 +72,15 @@ namespace myriad {
     /// image as the second argument.
     ///
 
-    class merge_pairer : public pairer {
+    class merge_pairer {
     public:
 
         explicit merge_pairer(image_set& src_set, image_set& dst_set)
           : m_src_set{src_set}, m_dst_set{dst_set} {
         }
 
-        int count() const override;
-        void pair(ksr::function_view<compare_sig> callback) override;
+        int count() const;
+        void pair(ksr::function_view<compare_sig> callback);
 
     private:
         image_set &m_src_set;
