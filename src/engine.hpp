@@ -99,8 +99,8 @@ namespace myriad {
 
     private:
 
-        using phase_variant = ksr::meta::apply_t<
-            ksr::meta::prepend_t<std::monostate, ksr::meta::transform_t<phase_range, phase_data>>,
+        using phase_variant = ksr::meta::apply_types_t<
+            ksr::meta::prepend_t<std::monostate, ksr::meta::transform_values_t<phase_range, phase_data>>,
             std::variant>;
 
         ///
