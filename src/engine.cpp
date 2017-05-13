@@ -54,6 +54,21 @@ namespace myriad {
         }
     }
 
+    phase_data<phase::scan>::phase_data(const engine& self)
+      : signaller{20ms, [&self](const int file_count, const int folder_count) {
+            Q_EMIT self.input_count_changed(file_count, folder_count);
+        }} {}
+
+    phase_data<phase::hash>::phase_data(const engine& self)
+      : signaller{[&self](const auto num, const auto denom) {
+            Q_EMIT self.progress_changed(ksr::int_percentage(num, denom));
+        }} {}
+
+    phase_data<phase::compare>::phase_data(const engine& self)
+      : signaller{[&self](const auto num, const auto denom) {
+            Q_EMIT self.progress_changed(ksr::int_percentage(num, denom));
+        }} {}
+
     engine::engine()
       : m_input_signaller{20ms, [this](const int file_count, const int folder_count) {
             Q_EMIT input_count_changed(file_count, folder_count);
@@ -136,7 +151,7 @@ namespace myriad {
         if (!info.exists()) {
             return;
         }
-
+1
         if (info.isFile()) {
 
             if (file_supported(base_path)) {

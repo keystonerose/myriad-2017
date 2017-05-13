@@ -8,7 +8,9 @@ set(CMAKE_AUTOMOC ON)
 set(3RDPARTY_DIR "3rdparty")
 set(INSTALL_DIR "install")
 
-set(KSR_DIR "ksr")
+set(MYRIAD_KSR_PREFIX "." CACHE STRING "overrides the path to the KSR library")
+set(KSR_DIR "${MYRIAD_KSR_PREFIX}/ksr")
+
 set(PHASH_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${3RDPARTY_DIR}/libphash")
 set(PHASH_SRC_DIR "${PHASH_DIR}/src/libphash")
 set(PHASH_LIBRARY "${PHASH_DIR}/lib/libpHash.a")
@@ -61,7 +63,7 @@ add_dependencies(myriad libphash)
 # be run every time the project is built, dramatically increasing the build time. It's much less
 # frustrating to be able to enable these checks selectively.
 
-set(MYRIAD_ENABLE_LINT OFF CACHE BOOL "Enable static analysis checks during build")
+set(MYRIAD_ENABLE_LINT OFF CACHE BOOL "enable static analysis checks during build")
 if(CLANG_TIDY_PATH AND MYRIAD_ENABLE_LINT)
     set_target_properties(myriad PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_PATH}")
 endif()

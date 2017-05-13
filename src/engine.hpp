@@ -3,14 +3,14 @@
 
 #include "image_info.hpp"
 #include "pairer.hpp"
+#include "ksr/meta.hpp"
 #include "ksr/update_filter.hpp"
 
 #include <QObject>
 #include <QString>
 #include <QStringList>
 
-#include <functional>
-#include <unordered_set>
+#include <variant>
 
 namespace myriad {
 
@@ -23,34 +23,32 @@ namespace myriad {
 
     enum class phase { scan, hash, compare };
 
+    using phase_range = ksr::value_seq<
+        phase::scan,
+        phase::hash,
+        phase::compare>;
+
+    // TODO:DOC
+    // In all phase_data constructors, the engine instance passed must outlive the phase_data object
+
     template <phase>
     struct phase_data;
 
     template <>
-    class phase_data<phase::scan> {
-    public:
-
-        explicit phase_data(std::function<int, int> signal_callback)
-          : signaller{std::move(signal_callback)} {}
-
+    struct phase_data<phase::scan> {
+        explicit phase_data(const engine& self};
         ksr::sampled_filter<int, int> signaller;
     };
 
     template <>
     struct phase_data<phase::hash> {
-
-        explicit phase_data(std::function<int, int> signal_callback)
-          : signaller{std::move(signal_callback)} {}
-
+        explicit phase_data(const engine& self);
         ksr::int_percentage_filter<int> signaller;
     };
 
     template <>
     struct phase_data<phase::compare> {
-
-        explicit phase_data(std::function<int, int> signal_callback)
-          : signaller{std::move(signal_callback)} {}
-
+        explicit phase_data(const engine& self);
         ksr::int_percentage_filter<int> signaller;
     };
 
@@ -100,6 +98,10 @@ namespace myriad {
         void progress_changed(int percent_complete) const;
 
     private:
+
+        using phase_variant = ksr::meta::apply_t<
+            ksr::meta::prepend_t<std::monostate, ksr::meta::transform_t<phase_range, phase_data>>,
+            std::variant>;
 
         ///
         /// Compares images as specified by \p pairer (which should be of one of the classes defined
@@ -153,7 +155,7 @@ namespace myriad {
 
         void signal_phase_change(phase new_phase) const;
 
-        mutable ksr::sampled_filter<int, int> m_input_signaller;
+        mutable phase_variant m_data;
     };
 
     bool thread_interrupted();
