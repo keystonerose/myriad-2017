@@ -73,7 +73,7 @@ namespace myriad {
     template <phase new_phase>
     auto engine::change_phase() const -> phase_data<new_phase>& {
 
-        auto& data = m_data.emplace<phase_data<new_phase>>();
+        auto& data = m_data.emplace<phase_data<new_phase>>(*this);
         Q_EMIT phase_changed(new_phase);
         Q_EMIT progress_changed(0);
         return data;
@@ -132,11 +132,11 @@ namespace myriad {
         scan_signaller.sync(collection_image_paths.size(), folder_count);
 
         auto& hash_signaller = change_phase<phase::hash>().signaller;
+        const auto image_count = input_image_paths.size() + collection_image_paths.size();
         hash_signaller.sync(0, image_count);
 
-        const auto image_count = input_image_paths.size() + collection_image_paths.size();
-        auto inputs = hash_images(input_image_paths, progress_signaller);
-        auto collection = hash_images(collection_image_paths, progress_signaller);
+        auto inputs = hash_images(input_image_paths);
+        auto collection = hash_images(collection_image_paths);
 
         ksr::erase_if(inputs, [&collection](const image_info& item) {
             return collection.count(item) > 0;
