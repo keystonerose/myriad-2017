@@ -19,6 +19,7 @@
 #include <cmath>
 #include <iterator>
 #include <numeric>
+#include <variant>
 
 using namespace std::literals::chrono_literals;
 
@@ -69,39 +70,51 @@ namespace myriad {
             Q_EMIT self.progress_changed(ksr::int_percentage(num, denom));
         }} {}
 
-    engine::engine()
-      : m_input_signaller{20ms, [this](const int file_count, const int folder_count) {
-            Q_EMIT input_count_changed(file_count, folder_count);
-        }} {}
+    template <phase new_phase>
+    auto engine::change_phase() const -> phase_data<new_phase>& {
+
+        auto& data = m_data.emplace<phase_data<new_phase>>();
+        Q_EMIT phase_changed(new_phase);
+        Q_EMIT progress_changed(0);
+        return data;
+    }
+
+    template <phase current_phase>
+    auto engine::current_data() const -> phase_data<current_phase>& {
+
+        using data_t = phase_data<current_phase>;
+        assert(std::holds_alternative<data_t>(m_data));
+        return std::get<data_t>(m_data);
+    }
 
     template <typename pairer_t>
-    void engine::compare_images(
-        pairer_t& pairer, ksr::int_percentage_filter<int>& progress_signaller) const {
+    void engine::compare_images(pairer_t& pairer) const {
 
         // TODO Currently, total_count is not updated when images are removed and the number that
         // is eventually processed ultimately changes; we need a mechanism for keeping that value
         // up-to-date.
 
-        auto count = progress_signaller.count();
+        auto& signaller = current_data<phase::compare>().signaller;
+        auto count = signaller.count();
+
         pairer.pair([&](const image_info&, const image_info&) {
-            const auto total_count = progress_signaller.total_count();
-            progress_signaller.update(++count, total_count);
+            signaller.update(++count, signaller.total());
         });
     }
 
-    image_set engine::hash_images(
-        const QStringList& paths, ksr::int_percentage_filter& progress_signaller) const {
+    auto engine::hash_images(const QStringList& paths) const -> image_set {
 
         auto result = image_set{};
 
-        const auto start_count = progress_signaller.count();
-        const auto total_count = progress_signaller.total_count();
+        auto& signaller = current_data<phase::hash>().signaller;
+        const auto start_count = signaller.count();
+        const auto total_count = signaller.total();
 
         const auto begin = std::cbegin(paths);
         const auto end = std::cend(paths);
         for (auto iter = begin; iter != end && !thread_interrupted();) {
             result.emplace(*iter++);
-            progress_signaller.update(start_count + std::distance(begin, iter), total_count);
+            signaller.update(start_count + std::distance(begin, iter), total_count);
         }
 
         return result;
@@ -112,19 +125,14 @@ namespace myriad {
         auto collection_image_paths = QStringList{};
         auto folder_count = 0;
 
-        signal_phase_change(phase::scan);
-        m_input_signaller.sync(0, 0);
+        auto& scan_signaller = change_phase<phase::scan>().signaller;
+        scan_signaller.sync(0, 0);
 
         scan_for_images(collection_path, collection_image_paths, folder_count);
-        m_input_signaller.sync(collection_image_paths.size(), folder_count);
+        scan_signaller.sync(collection_image_paths.size(), folder_count);
 
-        auto progress_signaller = ksr::int_percentage_filter<int>{
-            [](const auto num, const auto denom) {
-                Q_EMIT progress_changed(ksr::int_percentage(num, denom));
-            }};
-
-        signal_phase_change(phase::hash);
-        progress_signaller.sync(0, image_count);
+        auto& hash_signaller = change_phase<phase::hash>().signaller;
+        hash_signaller.sync(0, image_count);
 
         const auto image_count = input_image_paths.size() + collection_image_paths.size();
         auto inputs = hash_images(input_image_paths, progress_signaller);
@@ -137,11 +145,11 @@ namespace myriad {
         auto deduplicator = deduplicate_pairer{collection};
         auto merger = merge_pairer{inputs, collection};
 
-        signal_phase_change(phase::compare);
-        progress_signaller.sync(0, deduplicator.count() + merger.count());
+        auto& compare_signaller = change_phase<phase::compare>().signaller;
+        compare_signaller.sync(0, deduplicator.count() + merger.count());
 
-        compare_images(deduplicator, progress_signaller);
-        compare_images(merger, progress_signaller);
+        compare_images(deduplicator);
+        compare_images(merger);
     }
 
     void engine::scan_for_images(
@@ -151,12 +159,13 @@ namespace myriad {
         if (!info.exists()) {
             return;
         }
-1
+
+        auto& signaller = current_data<phase::scan>().signaller;
         if (info.isFile()) {
 
             if (file_supported(base_path)) {
                 image_paths.push_back(base_path);
-                m_input_signaller.update(image_paths.size(), folder_count);
+                signaller.update(image_paths.size(), folder_count);
             }
 
         } else if (info.isDir()) {
@@ -166,7 +175,7 @@ namespace myriad {
 
             const auto items = dir.entryInfoList();
             ++folder_count;
-            m_input_signaller.update(image_paths.size(), folder_count);
+            signaller.update(image_paths.size(), folder_count);
 
             const auto end = std::cend(items);
             for (auto iter = std::cbegin(items); iter != end && !thread_interrupted(); ++iter) {
@@ -175,12 +184,7 @@ namespace myriad {
         }
     }
 
-    void engine::signal_phase_change(const phase new_phase) const {
-        Q_EMIT phase_changed(new_phase);
-        Q_EMIT progress_changed(0);
-    }
-
-    bool thread_interrupted() {
+    auto thread_interrupted() -> bool {
         return QThread::currentThread()->isInterruptionRequested();
     }
 }
